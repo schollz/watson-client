@@ -31,47 +31,42 @@
 <body>
   <br>
   <div class="container container-fluid">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        Watson
+    <div class="row">
+      {{ if .SuccessMessage }}
+      <div class="alert alert-success" role="alert">
+        <span class="sr-only">Error:</span> {{ .SuccessMessage }}
       </div>
-      <div class="panel-body">
-        {{ if .SuccessMessage }}
-        <div class="alert alert-success" role="alert">
-          <span class="sr-only">Error:</span> {{ .SuccessMessage }}
-        </div>
-        {{ end }}
-        {{ if .ErrorMessage }}
-        <div class="alert alert-danger" role="alert">
-          <span class="sr-only">Error:</span> {{ .ErrorMessage }}
-        </div>
-        {{ end }}
-        {{ if .StatusMessage }}
-        <div class="alert alert-info" role="alert">
-          <span class="sr-only">Status:</span> {{ .StatusMessage }}
-        </div>
-        {{ end }}
+      {{ end }} {{ if .ErrorMessage }}
+      <div class="alert alert-danger" role="alert">
+        <span class="sr-only">Error:</span> {{ .ErrorMessage }}
       </div>
+      {{ end }} {{ if .StatusMessage }}
+      <div class="alert alert-info" role="alert">
+        <span class="sr-only">Status:</span> {{ .StatusMessage }}
+      </div>
+      {{ end }}
     </div>
     <hr>
     <div class="row">
       <div class="col-xs-6">
-        <button class="btn btn-lg btn-block btn-success" id="start">Start</button>
+        <button class="btn btn-block btn-success" id="start">Start</button>
       </div>
       <div class="col-xs-6">
-        <button class="btn btn-lg btn-block btn-danger" id="stop">Stop</button>
+        <button class="btn btn-block btn-danger" id="stop">Stop</button>
       </div>
     </div>
     <hr>
     <div class="panel panel-default">
       <div class="panel-heading">
-        Select a Project
+        Projects &nbsp;
+        <button class="btn btn-seconday" id="addproject">Add</button>&nbsp;
+        <button class="btn btn-seconday" id="deleteproject">Delete</button>
       </div>
       <div class="panel-body">
         <div class="row">
           {{ range .Projects }}
           <div class="col-xs-6 col-sm-3 ">
-            <button class="btn btn-lg btn-default project" id="{{.}}">{{.}}</button>
+            <button class="btn btn-default project" id="{{.}}">{{.}}</button>
           </div>
           {{ end }}
         </div>
@@ -80,13 +75,15 @@
     <hr>
     <div class="panel panel-default">
       <div class="panel-heading">
-        Select tags (optional)
+        Tags &nbsp;
+        <button class="btn btn-seconday" id="addtag">Add</button>&nbsp;
+        <button class="btn btn-seconday" id="deletetag">Delete</button>
       </div>
       <div class="panel-body">
         <div class="row">
           {{ range .Tags }}
           <div class="col-xs-6 col-sm-3">
-            <button class="btn btn-lg btn-default tag" id="{{.}}">{{.}}</button>
+            <button class="btn btn-default tag" id="{{.}}">{{.}}</button>
           </div>
           {{ end }}
         </div>
@@ -94,10 +91,25 @@
     </div>
 
   </div>
-  <form id="target" action="/" method="post">
+  <form id="startproject" action="/start" method="post">
+    <input type="hidden" id="user" name="user" value="{{ .User }}">
     <input type="hidden" id="currentProject" name="currentProject" value="Hello there">
     <input type="hidden" id="tagString" name="tagString" value="Hello there">
-    <input type="hidden" id="switchVal" name="switchVal" value="none">
+  </form>
+  <form id="stopproject" action="/stop" method="post">
+    <input type="hidden" id="user" name="user" value="{{ .User }}">
+  </form>
+
+  <form id="add" action="/add" method="post">
+    <input type="hidden" id="user" name="user" value="{{ .User }}">
+    <input type="hidden" id="itemType" name="itemType" value="Hello there">
+    <input type="hidden" id="itemName" name="itemName" value="Hello there">
+  </form>
+
+  <form id="delete" action="/delete" method="post">
+    <input type="hidden" id="user" name="user" value="{{ .User }}">
+    <input type="hidden" id="itemType" name="itemType" value="Hello there">
+    <input type="hidden" id="itemName" name="itemName" value="Hello there">
   </form>
 
   <!--scripts loaded here-->
@@ -110,31 +122,8 @@
 
   <script>
     var current_project = "{{ .ProjectString }}";
-    var tags = [{{ .TagString  }}];
+    var tags = ['{{ .TagString  }}'];
     var tag_string = "";
-
-    function postData() {
-      $("#currentProject").val(current_project);
-      $("#tagString").val(tag_string);
-      $("#switchVal").val("start");
-      $("#target").submit();
-      // $.ajax({
-      //   type: "POST",
-      //   url: "/start", //process to mail
-      //   data: {
-      //     currentProject: current_project,
-      //     tagString: tag_string
-      //   },
-      //   success: function() {
-      //       location.reload(true);
-      //   },
-      //   error: function() {
-      //     alert("failure");
-      //   }
-      // });
-    }
-
-
 
     $(document).ready(function() {
 
@@ -154,13 +143,13 @@
         if ($(this).hasClass("btn-primary") == false) {
           $('.project').each(function(i, obj) {
             $(this).removeClass()
-            $(this).addClass("btn btn-lg btn-default project")
+            $(this).addClass("btn btn-default project")
           });
           $(this).toggleClass("btn-primary");
           console.log($(this).attr('id'))
         } else {
           $(this).removeClass()
-          $(this).addClass("btn btn-lg btn-default project")
+          $(this).addClass("btn btn-default project")
         }
 
       });
@@ -177,6 +166,73 @@
         $("#target").submit();
       });
 
+      $('button#addtag').click(function() {
+        swal({
+          title: "Enter tags",
+          text: "Seperated by commas",
+          type: "input",
+          showCancelButton: true,
+          closeOnConfirm: true,
+          animation: "slide-from-top",
+          inputPlaceholder: "Write something"
+        }, function(inputValue) {
+          if (inputValue === false) return false;
+          if (inputValue === "") return false
+          $("input#itemType").val("tags");
+          $("input#itemName").val(inputValue);
+          $("form#add").submit();
+          return true
+        });
+      });
+
+
+      $('button#addproject').click(function() {
+        swal({
+          title: "Enter new project name",
+          text: "E.g. digging a tunnel",
+          type: "input",
+          showCancelButton: true,
+          closeOnConfirm: true,
+          animation: "slide-from-top",
+          inputPlaceholder: "Write something"
+        }, function(inputValue) {
+          if (inputValue === false) return false;
+          if (inputValue === "") return false
+          $("input#itemType").val("projects");
+          $("input#itemName").val(inputValue);
+          $("form#add").submit();
+          return true
+        });
+      });
+
+      $('button#deleteproject').click(function() {
+        current_project = ""
+        $('.project.btn-primary').each(function(i, obj) {
+          current_project = $(this).attr('id');
+        });
+        if (current_project != "") {
+          $("input#itemType").val("projects");
+          $("input#itemName").val(current_project);
+          $("form#delete").submit();
+        }
+      });
+
+
+      $('button#deletetag').click(function() {
+        current_project = ""
+        $('.tag.btn-info').each(function(i, obj) {
+          current_project = $(this).attr('id');
+        });
+        if (current_project != "") {
+          $("input#itemType").val("tags");
+          $("input#itemName").val(current_project);
+          $("form#delete").submit();
+        }
+      });
+
+
+
+
       $('button#start').click(function() {
         current_project = ""
         $('.project.btn-primary').each(function(i, obj) {
@@ -187,77 +243,19 @@
           tag_array.push($(this).attr('id'));
         });
         tag_string = tag_array.join()
-
-        if (tag_string == "" && current_project == "") {
-          swal({
-            title: "Enter new project name",
-            text: "E.g. digging a tunnel",
-            type: "input",
-            showCancelButton: true,
-            closeOnConfirm: false,
-            animation: "slide-from-top",
-            inputPlaceholder: "Write something"
-          }, function(inputValue2) {
-            if (inputValue2 === false) return false;
-            if (inputValue2 === "") {
-              swal.showInputError("You need to write something!");
-              return false
-            }
-            current_project = inputValue2;
-            swal({
-              title: "Enter tags",
-              text: "Seperated by commas",
-              type: "input",
-              showCancelButton: true,
-              closeOnConfirm: true,
-              animation: "slide-from-top",
-              inputPlaceholder: "Write something"
-            }, function(inputValue) {
-              if (inputValue === false) return false;
-              console.log(inputValue)
-              tag_string = inputValue;
-              postData();
-              return true
-            });
-          });
-        } else if (tag_string == "") {
-          swal({
-            title: "Enter tags",
-            text: "Seperated by commas",
-            type: "input",
-            showCancelButton: true,
-            closeOnConfirm: true,
-            animation: "slide-from-top",
-            inputPlaceholder: "Write something"
-          }, function(inputValue) {
-            if (inputValue === false) return false;
-            console.log(inputValue)
-            tag_string = inputValue;
-            postData();
-            return true
-          });
-        } else if (current_project == "") {
-          swal({
-            title: "Enter new project name",
-            text: "E.g. digging a tunnel",
-            type: "input",
-            showCancelButton: true,
-            closeOnConfirm: true,
-            animation: "slide-from-top",
-            inputPlaceholder: "Write something"
-          }, function(inputValue2) {
-            if (inputValue2 === false) return false;
-            if (inputValue2 === "") {
-              swal.showInputError("You need to write something!");
-              return false
-            }
-            current_project = inputValue2;
-            postData();
-          });
+        if (current_project != "") {
+          $("#currentProject").val(current_project);
+          $("#tagString").val(tag_string);
+          $("form#startproject").submit();
         } else {
-          postData();
+          sweetAlert("Oops...", "You need to set a project!", "error");
         }
       });
+
+      $('button#stop').click(function() {
+        $("form#stopproject").submit();
+      });
+
     });
   </script>
 
