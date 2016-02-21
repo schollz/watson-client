@@ -69,36 +69,11 @@
       </div>
       <div class="panel-body">
         <div class="row">
+          {{ range .Projects }}
           <div class="col-xs-6 col-sm-3 ">
-            <button class="btn btn-lg btn-default project" id="watsonclient">watsonclient</button>
+            <button class="btn btn-lg btn-default project" id="{{.}}">{{.}}</button>
           </div>
-          <div class="col-xs-6 col-sm-3 ">
-            <button class="btn btn-lg btn-default project" id="blogging">blogging</button>
-          </div>
-          <div class="col-xs-6 col-sm-3 ">
-            <button class="btn btn-lg btn-default project" id="blogging">blogging</button>
-          </div>
-          <div class="col-xs-6 col-sm-3 ">
-            <button class="btn btn-lg btn-default project" id="blogging">blogging</button>
-          </div>
-          <div class="col-xs-6 col-sm-3">
-            <button class="btn btn-lg btn-default project" id="blogging">blogging</button>
-          </div>
-          <div class="col-xs-6 col-sm-3">
-            <button class="btn btn-lg btn-default project" id="blogging">blogging</button>
-          </div>
-          <div class="col-xs-6 col-sm-3">
-            <button class="btn btn-lg btn-default project" id="blogging">blogging</button>
-          </div>
-          <div class="col-xs-6 col-sm-3">
-            <button class="btn btn-lg btn-default project" id="blogging">blogging</button>
-          </div>
-          <div class="col-xs-6 col-sm-3">
-            <button class="btn btn-lg btn-default project" id="blogging">blogging</button>
-          </div>
-          <div class="col-xs-6 col-sm-3">
-            <button class="btn btn-lg btn-default project" id="blogging">blogging</button>
-          </div>
+          {{ end }}
         </div>
       </div>
     </div>
@@ -109,26 +84,20 @@
       </div>
       <div class="panel-body">
         <div class="row">
+          {{ range .Tags }}
           <div class="col-xs-6 col-sm-3">
-            <button class="btn btn-lg btn-default tag" id="programming">programming</button>
+            <button class="btn btn-lg btn-default tag" id="{{.}}">{{.}}</button>
           </div>
-          <div class="col-xs-6 col-sm-3">
-            <button class="btn btn-lg btn-default tag" id="fun">fun</button>
-          </div>
-          <div class="col-xs-6 col-sm-3">
-            <button class="btn btn-lg btn-default tag" id="writing">writing</button>
-          </div>
-          <div class="col-xs-6 col-sm-3">
-            <button class="btn btn-lg btn-default tag" id="lab work">lab work</button>
-          </div>
+          {{ end }}
         </div>
       </div>
     </div>
 
   </div>
-  <form id="target" action="/start" method="post">
+  <form id="target" action="/" method="post">
     <input type="hidden" id="currentProject" name="currentProject" value="Hello there">
     <input type="hidden" id="tagString" name="tagString" value="Hello there">
+    <input type="hidden" id="switchVal" name="switchVal" value="none">
   </form>
 
   <!--scripts loaded here-->
@@ -140,12 +109,14 @@
 
 
   <script>
-    var current_project = "none";
-    var tags = ["programming", "fun"];
+    var current_project = "{{ .ProjectString }}";
+    var tags = [{{ .TagString  }}];
+    var tag_string = "";
 
     function postData() {
       $("#currentProject").val(current_project);
       $("#tagString").val(tag_string);
+      $("#switchVal").val("start");
       $("#target").submit();
       // $.ajax({
       //   type: "POST",
@@ -197,6 +168,15 @@
         $(this).toggleClass("btn-info");
         console.log($(this).attr('id'))
       });
+
+      $('button#stop').click(function() {
+        console.log("STOPPING")
+        $("#currentProject").val(current_project);
+        $("#tagString").val(tag_string);
+        $("#switchVal").val("stop");
+        $("#target").submit();
+      });
+
       $('button#start').click(function() {
         current_project = ""
         $('.project.btn-primary').each(function(i, obj) {
